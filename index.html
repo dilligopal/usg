@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoExtract AI - Foundation Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f0d;
+            --bg-secondary: #111916;
+            --bg-card: #151d19;
+            --fg-primary: #e8efe9;
+            --fg-secondary: #8a9b8f;
+            --fg-muted: #4a5c50;
+            --accent: #c4a747;
+            --accent-glow: rgba(196, 167, 71, 0.3);
+            --border: #2a3830;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --error: #f87171;
+            --info: #60a5fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--fg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Background Effects */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(196, 167, 71, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(196, 167, 71, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-gradient-overlay {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196, 167, 71, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(74, 222, 128, 0.05), transparent);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.4;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
+            25% { transform: translateY(-100px) translateX(50px); opacity: 0.6; }
+            50% { transform: translateY(-200px) translateX(-30px); opacity: 0.3; }
+            75% { transform: translateY(-150px) translateX(80px); opacity: 0.5; }
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            background: rgba(10, 15, 13, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), #8b7a35);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-text span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--fg-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--fg-primary);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(196, 167, 71, 0.1);
+            border: 1px solid rgba(196, 167, 71, 0.3);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.8s ease-out 0.1s both;
+        }
+
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--accent), #d4b854);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--fg-secondary);
+            max-width: 600px;
+            line-height: 1.6;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #8b7a35);
+            color: var(--bg-primary);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--fg-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            border-color: var(--fg-muted);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 5rem;
+            padding: 2rem;
+            background: rgba(21, 29, 25, 0.5);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--fg-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            background: rgba(196, 167, 71, 0.1);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-desc {
+            color: var(--fg-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .upload-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .upload-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Project Parameters Panel */
+        .params-panel {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .params-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .params-title svg {
+            color: var(--accent);
+        }
+
+        .param-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .param-label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--fg-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .param-input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--fg-primary);
+            font-size: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s;
+        }
+
+        .param-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .param-input::placeholder {
+            color: var(--fg-muted);
+        }
+
+        .param-hint {
+            font-size: 0.8rem;
+            color: var(--fg-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            background: var(--bg-card);
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(196, 167, 71, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(196, 167, 71, 0.05);
+        }
+
+        .upload-zone:hover::before {
+            opacity: 1;
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(196, 167, 71, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-zone.has-file {
+            border-style: solid;
+            border-color: var(--success);
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: rgba(196, 167, 71, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-icon svg {
+            width: 36px;
+            height: 36px;
+            color: var(--accent);
+        }
+
+        .upload-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtitle {
+            color: var(--fg-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-formats {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .format-tag {
+            padding: 0.35rem 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--fg-muted);
+        }
+
+        .preview-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            width: 100%;
+        }
+
+        .preview-filename {
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .preview-size {
+            font-size: 0.85rem;
+            color: var(--fg-muted);
+        }
+
+        /* Process Button */
+        .process-section {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .btn-process {
+            padding: 1.25rem 3rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-process:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Processing Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 13, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid var(--border);
+            animation: modalIn 0.3s ease-out;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .processing-animation {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .processing-ring {
+            position: absolute;
+            inset: 0;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .processing-ring:nth-child(2) {
+            inset: 15px;
+            animation-delay: -0.3s;
+            animation-direction: reverse;
+        }
+
+        .processing-ring:nth-child(3) {
+            inset: 30px;
+            animation-delay: -0.6s;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .processing-icon {
+            position: absolute;
+            inset: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .processing-icon svg {
+            width: 32px;
+            height: 32px;
+            color: var(--accent);
+        }
+
+        .processing-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .processing-step {
+            color: var(--fg-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .processing-steps {
+            text-align: left;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .step-item:last-child {
+            border-bottom: none;
+        }
+
+        .step-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .step-icon.pending {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+        }
+
+        .step-icon.active {
+            background: rgba(196, 167, 71, 0.2);
+            border: 2px solid var(--accent);
+            animation: stepPulse 1s infinite;
+        }
+
+        .step-icon.done {
+            background: rgba(74, 222, 128, 0.2);
+            border: 2px solid var(--success);
+        }
+
+        @keyframes stepPulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            50% { box-shadow: 0 0 0 8px transparent; }
+        }
+
+        .step-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .step-text {
+            font-size: 0.95rem;
+        }
+
+        .step-text.active {
+            color: var(--accent);
+        }
+
+        .step-text.done {
+            color: var(--success);
+        }
+
+        /* Results Section */
+        .results-section {
+            padding: 6rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* Foundation Recommendation Card */
+        .recommendation-card {
+            background: linear-gradient(135deg, var(--bg-card), rgba(196, 167, 71, 0.05));
+            border-radius: 24px;
+            padding: 2.5rem;
+            border: 1px solid var(--accent);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recommendation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+        }
+
+        .rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .rec-title-group {
+            flex: 1;
+        }
+
+        .rec-label {
+            font-size: 0.9rem;
+            color: var(--fg-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .rec-type {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .rec-badge {
+            padding: 0.75rem 1.5rem;
+            background: rgba(74, 222, 128, 0.15);
+            border: 1px solid var(--success);
+            border-radius: 100px;
+            color: var(--success);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rec-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .rec-detail-item {
+            background: var(--bg-secondary);
+            padding: 1.25rem;
+            border-radius: 12px;
+        }
+
+        .rec-detail-label {
+            font-size: 0.85rem;
+            color: var(--fg-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .rec-detail-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .rec-detail-value.highlight {
+            color: var(--accent);
+        }
+
+        .rec-reason {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border-left: 4px solid var(--info);
+        }
+
+        .rec-reason-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--info);
+        }
+
+        .rec-reason-text {
+            color: var(--fg-secondary);
+            line-height: 1.6;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1100px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Data Table */
+        .results-table-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-sm {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            color: var(--fg-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--bg-secondary);
+        }
+
+        .data-table th:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .data-table th:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .data-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(196, 167, 71, 0.05);
+        }
+
+        .data-table td {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .depth-value {
+            color: var(--accent);
+        }
+
+        .ucs-value {
+            font-weight: 500;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        /* Chart Panel */
+        .chart-panel {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .chart-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .chart-subtitle {
+            color: var(--fg-secondary);
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: 350px;
+            position: relative;
+        }
+
+        #ucsChart {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Export Section */
+        .export-section {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .export-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .export-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 1.25rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .export-btn:hover {
+            background: rgba(196, 167, 71, 0.1);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .export-btn-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 0.75rem;
+            background: rgba(196, 167, 71, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .export-btn-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+        }
+
+        .export-btn-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .export-btn-format {
+            font-size: 0.8rem;
+            color: var(--fg-muted);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--success);
+            border-radius: 12px;
+            color: var(--success);
+            font-weight: 500;
+            z-index: 300;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease-out;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-info {
+            color: var(--fg-secondary);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-link {
+            color: var(--fg-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .rec-type {
+                font-size: 1.75rem;
+            }
+
+            .export-options {
+                flex-direction: column;
+            }
+        }
+
+        /* Focus States */
+        .btn:focus-visible,
+        .nav-link:focus-visible,
+        .export-btn:focus-visible,
+        .param-input:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-grid"></div>
+    <div class="bg-gradient-overlay"></div>
+    
+    <!-- Particles -->
+    <div class="particle" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 25%; top: 60%; animation-delay: -5s;"></div>
+    <div class="particle" style="left: 45%; top: 30%; animation-delay: -10s;"></div>
+    <div class="particle" style="left: 65%; top: 70%; animation-delay: -15s;"></div>
+    <div class="particle" style="left: 85%; top: 40%; animation-delay: -8s;"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">File downloaded successfully!</div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="nav-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">Geo<span>Extract</span> AI</div>
+                </div>
+                <div class="nav-links">
+                    <a href="#upload" class="nav-link">Upload</a>
+                    <a href="#results" class="nav-link">Results</a>
+                    <a href="#export" class="nav-link">Export</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                Geotechnical Intelligence Platform
+            </div>
+            <h1 class="hero-title">
+                Extract UCS Data &<br>
+                <span class="highlight">Design Foundations</span>
+            </h1>
+            <p class="hero-subtitle">
+                Upload UCS graphs, specify building floors, and receive AI-powered foundation recommendations 
+                tailored to your site conditions.
+            </p>
+            <div class="hero-cta">
+                <a href="#upload" class="btn btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Start Analysis
+                </a>
+                <button class="btn btn-secondary" onclick="showDemo()">View Demo</button>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value">98.5%</div>
+                    <div class="stat-label">Extraction Accuracy</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">3.2s</div>
+                    <div class="stat-label">Processing Time</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">AI</div>
+                    <div class="stat-label">Foundation Design</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section id="upload" class="upload-section">
+            <div class="section-header">
+                <span class="section-tag">Input Parameters</span>
+                <h2 class="section-title">Upload Graph & Project Details</h2>
+                <p class="section-desc">
+                    Provide the UCS test graph and project specifications for comprehensive geotechnical analysis.
+                </p>
+            </div>
+
+            <div class="upload-container">
+                <!-- File Upload Zone -->
+                <div class="upload-zone" id="uploadZone" tabindex="0" role="button" aria-label="Upload files">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <h3 class="upload-title" id="uploadTitle">Drop UCS Graph Here</h3>
+                    <p class="upload-subtitle" id="uploadSubtitle">or click to browse</p>
+                    <div class="upload-formats" id="uploadFormats">
+                        <span class="format-tag">PDF</span>
+                        <span class="format-tag">PNG</span>
+                        <span class="format-tag">JPG</span>
+                    </div>
+                    <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg" hidden>
+                </div>
+
+                <!-- Project Parameters -->
+                <div class="params-panel">
+                    <h3 class="params-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v10"/>
+                            <path d="m4.22 4.22 4.24 4.24m7.08 7.08 4.24 4.24"/>
+                            <path d="M1 12h6m6 0h10"/>
+                        </svg>
+                        Project Parameters
+                    </h3>
+
+                    <div class="param-group">
+                        <label class="param-label" for="floorsInput">Number of Floors</label>
+                        <input type="number" class="param-input" id="floorsInput" min="1" max="100" placeholder="e.g., 5" value="3">
+                        <p class="param-hint">Enter the total number of floors for the proposed structure</p>
+                    </div>
+
+                    <div class="param-group">
+                        <label class="param-label" for="buildingType">Building Type</label>
+                        <select class="param-input" id="buildingType">
+                            <option value="residential">Residential</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="industrial">Industrial</option>
+                            <option value="institutional">Institutional</option>
+                        </select>
+                        <p class="param-hint">Select the type of structure</p>
+                    </div>
+
+                    <div class="param-group">
+                        <label class="param-label" for="siteLocation">Site Location (Optional)</label>
+                        <input type="text" class="param-input" id="siteLocation" placeholder="e.g., Mumbai, India">
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-section">
+                <button class="btn btn-primary btn-process" id="processBtn" disabled onclick="startProcessing()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                    Analyze & Recommend Foundation
+                </button>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results" class="results-section">
+            <div class="section-header">
+                <span class="section-tag">Analysis Results</span>
+                <h2 class="section-title">Foundation Recommendation</h2>
+            </div>
+
+            <!-- Recommendation Card -->
+            <div class="recommendation-card" id="recommendationCard">
+                <div class="rec-header">
+                    <div class="rec-title-group">
+                        <p class="rec-label">Recommended Foundation Type</p>
+                        <h3 class="rec-type" id="recType">Isolated Footing</h3>
+                    </div>
+                    <div class="rec-badge" id="recBadge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Safe Design
+                    </div>
+                </div>
+
+                <div class="rec-details">
+                    <div class="rec-detail-item">
+                        <p class="rec-detail-label">Allowable Bearing Capacity</p>
+                        <p class="rec-detail-value highlight" id="recBearing">150 kPa</p>
+                    </div>
+                    <div class="rec-detail-item">
+                        <p class="rec-detail-label">Estimated Foundation Depth</p>
+                        <p class="rec-detail-value" id="recDepth">1.5 m</p>
+                    </div>
+                    <div class="rec-detail-item">
+                        <p class="rec-detail-label">Estimated Settlement</p>
+                        <p class="rec-detail-value" id="recSettlement">25 mm</p>
+                    </div>
+                    <div class="rec-detail-item">
+                        <p class="rec-detail-label">Safety Factor</p>
+                        <p class="rec-detail-value" id="recSafety">2.5</p>
+                    </div>
+                </div>
+
+                <div class="rec-reason">
+                    <p class="rec-reason-title">Engineering Justification</p>
+                    <p class="rec-reason-text" id="recReason">
+                        Based on the extracted UCS values and building load calculations...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Data and Chart Grid -->
+            <div class="results-grid">
+                <div class="results-table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Extracted UCS Data</h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Sample ID</th>
+                                    <th>Depth (m)</th>
+                                    <th>UCS (MPa)</th>
+                                    <th>Strain (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="chart-panel">
+                    <div class="chart-header">
+                        <h3 class="chart-title">UCS Profile</h3>
+                        <p class="chart-subtitle">Depth vs Strength</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ucsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Section -->
+            <div id="export" class="export-section">
+                <div class="export-header">
+                    <h3 class="export-title">Export Report</h3>
+                </div>
+                <div class="export-options">
+                    <button class="export-btn" onclick="exportCSV()">
+                        <div class="export-btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                        </div>
+                        <div class="export-btn-label">CSV</div>
+                    </button>
+                    <button class="export-btn" onclick="exportExcel()">
+                        <div class="export-btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 3v18h18"/>
+                                <path d="m19 9-5 5-4-4-3 3"/>
+                            </svg>
+                        </div>
+                        <div class="export-btn-label">Excel</div>
+                    </button>
+                    <button class="export-btn" onclick="exportJSON()">
+                        <div class="export-btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="16 18 22 12 16 6"/>
+                                <polyline points="8 6 2 12 8 18"/>
+                            </svg>
+                        </div>
+                        <div class="export-btn-label">JSON</div>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-info">GeoExtract AI - Geotechnical Intelligence Platform</div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Documentation</a>
+                    <a href="#" class="footer-link">API</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Processing Modal -->
+    <div class="modal-overlay" id="processingModal">
+        <div class="modal-content">
+            <div class="processing-animation">
+                <div class="processing-ring"></div>
+                <div class="processing-ring"></div>
+                <div class="processing-ring"></div>
+                <div class="processing-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="processing-title">Analyzing Data</h3>
+            <p class="processing-step" id="currentStep">Initializing AI...</p>
+            <div class="processing-steps">
+                <div class="step-item">
+                    <div class="step-icon active" id="step1Icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/></svg></div>
+                    <span class="step-text active" id="step1Text">Extracting UCS values</span>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon pending" id="step2Icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/></svg></div>
+                    <span class="step-text" id="step2Text">Calculating bearing capacity</span>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon pending" id="step3Icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/></svg></div>
+                    <span class="step-text" id="step3Text">Evaluating foundation options</span>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon pending" id="step4Icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/></svg></div>
+                    <span class="step-text" id="step4Text">Generating recommendation</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let uploadedFile = null;
+        let extractedData = [];
+        let foundationRec = null;
+
+        // Particles
+        document.querySelectorAll('.particle').forEach((p, i) => {
+            p.style.animationDelay = `${-i * 3}s`;
+        });
+
+        // Toast
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // Upload handling
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const processBtn = document.getElementById('processBtn');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        uploadZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            const valid = ['application/pdf', 'image/png', 'image/jpeg'];
+            if (!valid.includes(file.type)) {
+                alert('Please upload PDF, PNG, or JPG');
+                return;
+            }
+            uploadedFile = file;
+            uploadZone.classList.add('has-file');
+            
+            document.getElementById('uploadTitle').textContent = 'File Ready';
+            document.getElementById('uploadSubtitle').textContent = file.name;
+            document.getElementById('uploadFormats').innerHTML = `
+                <div class="preview-info">
+                    <p class="preview-filename">${file.name}</p>
+                    <p class="preview-size">${(file.size / 1024).toFixed(1)} KB</p>
+                </div>
+            `;
+            
+            checkProcessReady();
+        }
+
+        function checkProcessReady() {
+            const floors = document.getElementById('floorsInput').value;
+            processBtn.disabled = !uploadedFile || !floors || floors < 1;
+        }
+
+        document.getElementById('floorsInput').addEventListener('input', checkProcessReady);
+
+        // Processing
+        async function startProcessing() {
+            if (!uploadedFile) return;
+            
+            const floors = parseInt(document.getElementById('floorsInput').value) || 3;
+            const buildingType = document.getElementById('buildingType').value;
+
+            document.getElementById('processingModal').classList.add('active');
+
+            const steps = [
+                { el: 'step1', text: 'Extracting UCS values', dur: 800 },
+                { el: 'step2', text: 'Calculating bearing capacity', dur: 1000 },
+                { el: 'step3', text: 'Evaluating foundation options', dur: 1200 },
+                { el: 'step4', text: 'Generating recommendation', dur: 600 }
+            ];
+
+            for (let i = 0; i < steps.length; i++) {
+                const s = steps[i];
+                document.getElementById('currentStep').textContent = s.text + '...';
+                
+                if (i > 0) {
+                    markStepDone(i);
+                }
+                markStepActive(s.el);
+                
+                await sleep(s.dur);
+            }
+
+            markStepDone(4);
+            document.getElementById('currentStep').textContent = 'Complete!';
+
+            await sleep(400);
+
+            extractedData = generateMockUCS();
+            foundationRec = recommendFoundation(extractedData, floors, buildingType);
+
+            document.getElementById('processingModal').classList.remove('active');
+            showResults();
+        }
+
+        function markStepActive(el) {
+            const icon = document.getElementById(el + 'Icon');
+            const text = document.getElementById(el + 'Text');
+            icon.classList.remove('pending');
+            icon.classList.add('active');
+            text.classList.add('active');
+        }
+
+        function markStepDone(n) {
+            const icon = document.getElementById('step' + n + 'Icon');
+            const text = document.getElementById('step' + n + 'Text');
+            icon.classList.remove('active');
+            icon.classList.add('done');
+            icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+            text.classList.remove('active');
+            text.classList.add('done');
+        }
+
+        function sleep(ms) {
+            return new Promise(r => setTimeout(r, ms));
+        }
+
+        function generateMockUCS() {
+            const data = [];
+            const depths = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0];
+            let base = 8 + Math.random() * 5;
+            
+            depths.forEach((d, i) => {
+                const ucs = base + d * 3 + (Math.random() * 6 - 3);
+                data.push({
+                    sampleId: `S${String(i+1).padStart(2,'0')}`,
+                    depth: d.toFixed(2),
+                    ucs: Math.max(2, ucs).toFixed(2),
+                    strain: (1 + Math.random()).toFixed(2)
+                });
+            });
+            return data;
+        }
+
+        function recommendFoundation(data, floors, buildingType) {
+            // Calculate average UCS at shallow depth (0-2m)
+            const shallow = data.filter(d => parseFloat(d.depth) <= 2);
+            const avgShallowUCS = shallow.reduce((a, b) => a + parseFloat(b.ucs), 0) / shallow.length;
+            
+            // Calculate average UCS at deeper depth (2-6m)
+            const deep = data.filter(d => parseFloat(d.depth) > 2);
+            const avgDeepUCS = deep.reduce((a, b) => a + parseFloat(b.ucs), 0) / deep.length;
+
+            // Estimate bearing capacity (simplified: UCS * 5 for rock, adjusted)
+            const bearingCapacity = avgShallowUCS * 8; // kPa approximation
+
+            // Load estimation based on floors
+            const loadPerFloor = buildingType === 'industrial' ? 15 : buildingType === 'commercial' ? 12 : 10; // kPa per floor
+            const totalLoad = floors * loadPerFloor;
+
+            let type, depth, settlement, safety, reason;
+
+            if (avgShallowUCS > 15 && totalLoad < 200) {
+                type = 'Isolated Footing';
+                depth = '1.2 - 1.5';
+                settlement = '15-25';
+                safety = '2.8';
+                reason = `Strong soil conditions near surface (avg UCS ${avgShallowUCS.toFixed(1)} MPa) support shallow foundations. The estimated building load (${totalLoad} kPa) is well within the allowable bearing capacity (${(bearingCapacity/2.5).toFixed(0)} kPa). Isolated footings are cost-effective and suitable for this ${floors}-storey ${buildingType} structure.`;
+            } else if (avgShallowUCS > 8 && totalLoad < 350) {
+                type = 'Raft Foundation';
+                depth = '1.5 - 2.0';
+                settlement = '25-40';
+                safety = '2.5';
+                reason = `Moderate soil strength near surface (avg UCS ${avgShallowUCS.toFixed(1)} MPa) combined with ${floors} floors requires a raft foundation to distribute loads evenly. This reduces bearing pressure and minimizes differential settlement for the ${buildingType} building.`;
+            } else if (avgDeepUCS > avgShallowUCS * 1.5) {
+                type = 'Pile Foundation';
+                depth = '8 - 12';
+                settlement = '10-20';
+                safety = '3.0';
+                reason = `Weak surface soils (UCS ${avgShallowUCS.toFixed(1)} MPa) but strong stratum at depth (UCS ${avgDeepUCS.toFixed(1)} MPa). Piles will transfer the ${floors}-storey ${buildingType} building load to the competent bearing layer at approximately 8-12m depth.`;
+            } else {
+                type = 'Deep Foundation (Piles)';
+                depth = '10 - 15';
+                settlement = '20-35';
+                safety = '2.5';
+                reason = `Given the heavy ${floors}-storey ${buildingType} structure load and moderate soil conditions, deep foundations are recommended to ensure adequate bearing capacity and limit settlement.`;
+            }
+
+            return {
+                type,
+                bearingCapacity: Math.min(bearingCapacity / 2.5, 400).toFixed(0),
+                depth,
+                settlement,
+                safety,
+                reason,
+                avgShallowUCS: avgShallowUCS.toFixed(1),
+                avgDeepUCS: avgDeepUCS.toFixed(1)
+            };
+        }
+
+        function showResults() {
+            document.getElementById('results').classList.add('active');
+
+            // Update recommendation card
+            document.getElementById('recType').textContent = foundationRec.type;
+            document.getElementById('recBearing').textContent = foundationRec.bearingCapacity + ' kPa';
+            document.getElementById('recDepth').textContent = foundationRec.depth + ' m';
+            document.getElementById('recSettlement').textContent = foundationRec.settlement + ' mm';
+            document.getElementById('recSafety').textContent = foundationRec.safety;
+            document.getElementById('recReason').textContent = foundationRec.reason;
+
+            // Populate table
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            extractedData.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${r.sampleId}</td>
+                    <td class="depth-value">${r.depth}</td>
+                    <td class="ucs-value">${r.ucs}</td>
+                    <td>${r.strain}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            drawChart();
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function drawChart() {
+            const canvas = document.getElementById('ucsChart');
+            const ctx = canvas.getContext('2d');
+            const container = canvas.parentElement;
+            
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            const pad = { t: 30, r: 30, b: 50, l: 60 };
+            const w = canvas.width - pad.l - pad.r;
+            const h = canvas.height - pad.t - pad.b;
+
+            ctx.fillStyle = '#111916';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const depths = extractedData.map(d => parseFloat(d.depth));
+            const ucs = extractedData.map(d => parseFloat(d.ucs));
+            const minD = Math.min(...depths), maxD = Math.max(...depths);
+            const minU = Math.min(...ucs) - 2, maxU = Math.max(...ucs) + 2;
+
+            const xScale = v => pad.l + ((v - minU) / (maxU - minU)) * w;
+            const yScale = v => pad.t + h - ((v - minD) / (maxD - minD)) * h;
+
+            // Grid
+            ctx.strokeStyle = 'rgba(196, 167, 71, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const x = pad.l + (w / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, pad.t);
+                ctx.lineTo(x, pad.t + h);
+                ctx.stroke();
+            }
+
+            // Axes
+            ctx.strokeStyle = '#2a3830';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(pad.l, pad.t);
+            ctx.lineTo(pad.l, pad.t + h);
+            ctx.lineTo(pad.l + w, pad.t + h);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#8a9b8f';
+            ctx.font = '11px Space Grotesk';
+            ctx.textAlign = 'center';
+            ctx.fillText('UCS (MPa)', pad.l + w/2, canvas.height - 8);
+            
+            ctx.save();
+            ctx.translate(18, pad.t + h/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('Depth (m)', 0, 0);
+            ctx.restore();
+
+            // Line
+            ctx.strokeStyle = '#c4a747';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            extractedData.forEach((p, i) => {
+                const x = xScale(parseFloat(p.ucs));
+                const y = yScale(parseFloat(p.depth));
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Points
+            extractedData.forEach(p => {
+                const x = xScale(parseFloat(p.ucs));
+                const y = yScale(parseFloat(p.depth));
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#c4a747';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#0a0f0d';
+                ctx.fill();
+            });
+        }
+
+        // Exports
+        function exportCSV() {
+            if (!extractedData.length) return showToast('No data');
+            let csv = 'Sample ID,Depth (m),UCS (MPa),Strain (%)\n';
+            extractedData.forEach(r => {
+                csv += `${r.sampleId},${r.depth},${r.ucs},${r.strain}\n`;
+            });
+            downloadFile(csv, 'ucs_data.csv', 'text/csv');
+            showToast('CSV downloaded');
+        }
+
+        function exportExcel() {
+            if (!extractedData.length) return showToast('No data');
+            let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+            <head><meta charset="UTF-8"></head><body>
+            <h2>Foundation Recommendation: ${foundationRec.type}</h2>
+            <p>Bearing Capacity: ${foundationRec.bearingCapacity} kPa | Depth: ${foundationRec.depth} m</p>
+            <table border="1"><tr><th>Sample</th><th>Depth (m)</th><th>UCS (MPa)</th><th>Strain (%)</th></tr>`;
+            extractedData.forEach(r => {
+                html += `<tr><td>${r.sampleId}</td><td>${r.depth}</td><td>${r.ucs}</td><td>${r.strain}</td></tr>`;
+            });
+            html += '</table></body></html>';
+            downloadFile(html, 'ucs_report.xls', 'application/vnd.ms-excel');
+            showToast('Excel downloaded');
+        }
+
+        function exportJSON() {
+            if (!extractedData.length) return showToast('No data');
+            const json = JSON.stringify({ recommendation: foundationRec, data: extractedData }, null, 2);
+            downloadFile(json, 'ucs_analysis.json', 'application/json');
+            showToast('JSON downloaded');
+        }
+
+        function downloadFile(content, filename, mime) {
+            const blob = new Blob(['\ufeff' + content], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
+
+        function showDemo() {
+            uploadedFile = { name: 'demo_ucs_graph.png', type: 'image/png' };
+            uploadZone.classList.add('has-file');
+            document.getElementById('uploadTitle').textContent = 'Demo File Ready';
+            document.getElementById('uploadSubtitle').textContent = 'demo_ucs_graph.png';
+            document.getElementById('uploadFormats').innerHTML = '';
+            document.getElementById('floorsInput').value = 5;
+            checkProcessReady();
+            document.getElementById('upload').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.addEventListener('resize', () => {
+            if (extractedData.length) drawChart();
+        });
+    </script>
+</body>
+</html>
